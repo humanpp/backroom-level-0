@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0a0a07">
+<title>后室 · LEVEL 0</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<canvas id="scene"></canvas>
+
+<div id="vignette"></div>
+<div id="scanlines"></div>
+<div id="grain"></div>
+<div id="insanity"></div>
+<div id="hitflash"></div>
+<div id="fade"></div>
+
+<!-- ================= HUD ================= -->
+<div id="hud">
+  <div class="hud-top">
+    <div id="objective">
+      <span class="tag">目标</span>
+      <span id="objectiveText">找到货运电梯需要的三枚保险丝</span>
+    </div>
+    <div id="clock">00:00</div>
+  </div>
+
+  <div class="hud-bars">
+    <div class="bar">
+      <div class="label">心智</div>
+      <div class="track"><i id="sanityFill"></i></div>
+    </div>
+    <div class="bar">
+      <div class="label">体力</div>
+      <div class="track"><i id="staminaFill"></i></div>
+    </div>
+    <div class="bar" id="batteryRow">
+      <div class="label">电量</div>
+      <div class="track"><i id="batteryFill"></i></div>
+    </div>
+  </div>
+
+  <div id="inventory"></div>
+
+  <div id="minimapWrap">
+    <canvas id="minimap" width="312" height="312"></canvas>
+    <div class="mm-hint">M · 局部地图</div>
+  </div>
+
+  <div id="crosshair"></div>
+  <div id="prompt"></div>
+  <div id="toast"></div>
+  <div id="subtitle"></div>
+
+  <div id="sequence" class="hidden">
+    <div class="seq-label">电梯供电中 · 请留在附近</div>
+    <div class="seq-time">40</div>
+    <div class="seq-sub" id="seqSub">灯管开始失控</div>
+  </div>
+
+  <div id="installBar" class="hidden">
+    <div class="ib-label">正在安装保险丝 · 请勿离开</div>
+    <div class="ib-track"><i id="installFill"></i></div>
+  </div>
+
+  <!-- 触屏操作层（仅粗指针设备显示） -->
+  <div id="touchUI" aria-hidden="true">
+    <div id="stick">
+      <div class="stick-ring"></div>
+      <div id="stickKnob"></div>
+      <div class="stick-hint">移动</div>
+    </div>
+
+    <button class="tbtn" id="tSprint" type="button" aria-label="按住冲刺">跑</button>
+    <button class="tbtn" id="tFlash" type="button" aria-label="手电筒">灯</button>
+    <button class="tbtn small" id="tDrink" type="button" aria-label="喝杏仁水">水</button>
+    <button class="tbtn" id="tCrouch" type="button" aria-label="切换蹲伏">蹲</button>
+    <button class="tbtn big" id="tInteract" type="button" aria-label="交互">交互</button>
+
+    <button class="tbtn small" id="tPause" type="button" aria-label="暂停">Ⅱ</button>
+    <button class="tbtn small" id="tMap" type="button" aria-label="局部地图">图</button>
+  </div>
+</div>
+
+<!-- ================= 标题 ================= -->
+<div id="boot" class="screen">
+  <div class="boot-inner">
+    <div class="boot-tag">档案 / 层级 0 / 未记录</div>
+    <h1 class="title">后<span class="gap"></span>室</h1>
+    <div class="eng-title">THE BACKROOMS <span class="dim">/</span> LEVEL 0 <span class="dim">— “前厅”</span></div>
+
+    <p class="lore">
+      你不小心在错误的地方从现实里切了出去。<br>
+      这里只有腐臭的潮湿地毯、令人发狂的单调黄色、荧光灯永无止境的嗡鸣，<br>
+      以及大约六亿平方英里随机分割的空荡房间。<br>
+      <em>倘若你听见有什么东西在附近徘徊，愿上帝保佑你——因为它一定也听见了你的声音。</em>
+    </p>
+
+    <div class="boot-grid">
+      <div class="controls">
+        <h3>操作</h3>
+        <ul class="desk-only">
+          <li><kbd>W A S D</kbd><span>移动</span></li>
+          <li><kbd>SHIFT</kbd><span>冲刺（消耗体力）</span></li>
+          <li><kbd>C</kbd><span>蹲下（几乎没有脚步声）</span></li>
+          <li><kbd>E</kbd><span>交互 / 拾取 / 收起便条</span></li>
+          <li><kbd>F</kbd><span>手电筒</span></li>
+          <li><kbd>1</kbd><span>饮用杏仁水</span></li>
+          <li><kbd>M</kbd><span>切换局部地图</span></li>
+          <li><kbd>ESC</kbd><span>暂停</span></li>
+        </ul>
+        <ul class="touch-only">
+          <li><kbd>摇杆</kbd><span>移动 / 全速推到底</span></li>
+          <li><kbd>滑动</kbd><span>转动视角</span></li>
+          <li><kbd>交互</kbd><span>拾取·电梯·便条</span></li>
+          <li><kbd>跑 / 蹲</kbd><span>冲刺·蹲伏</span></li>
+          <li><kbd>灯 / 水 / 图</kbd><span>手电·水·图</span></li>
+          <li><kbd>Ⅱ</kbd><span>暂停</span></li>
+        </ul>
+      </div>
+
+      <div class="boot-right">
+        <div class="brief">
+          <h3>任务</h3>
+          <p>
+            在无尽的房间里找到 <b>三枚保险丝</b>，修复货运电梯。<br>
+            <b>杏仁水</b>能让你保持清醒，<b>手电筒</b>照亮没有灯的地方。<br>
+            不要对它大喊，也不要一直奔跑。<br>
+            <em>它听得见你的脚步。</em>
+          </p>
+        </div>
+
+        <div class="boot-actions">
+          <div class="diff">
+            <button class="diff-btn active" data-diff="normal">普通</button>
+            <button class="diff-btn" data-diff="nightmare">噩梦</button>
+          </div>
+          <button id="startBtn" class="primary">切 出 现 实</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="boot-foot">
+      <span class="desk-only">建议佩戴耳机 · 点击后锁定鼠标 · 桌面端体验最佳</span>
+      <span class="touch-only">建议佩戴耳机 · 横屏体验更佳 · 支持触屏操作</span>
+    </div>
+  </div>
+</div>
+
+<!-- ================= 便条 ================= -->
+<div id="note" class="screen hidden">
+  <div class="note-card">
+    <div class="note-head">拾获物 · <span id="noteIndex">便条</span></div>
+    <div id="noteText"></div>
+    <div class="note-foot">
+      <button id="noteCloseBtn" class="note-close" type="button"><kbd>E</kbd><span>收起</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= 暂停 ================= -->
+<div id="pause" class="screen hidden">
+  <div class="pause-inner">
+    <h2>已 暂 停</h2>
+    <p class="lore">嗡鸣声还在继续。</p>
+    <div class="settings">
+      <div class="setting">
+        <label id="sensLabel">鼠标灵敏度</label>
+        <input id="sensRange" type="range" min="0.4" max="2.4" step="0.05" value="1">
+        <span class="val" id="sensVal">1.00</span>
+      </div>
+      <div class="setting">
+        <label>音量</label>
+        <input id="volRange" type="range" min="0" max="1" step="0.02" value="0.8">
+        <span class="val" id="volVal">80</span>
+      </div>
+    </div>
+    <div class="pause-actions">
+      <button id="resumeBtn" class="primary">继 续</button>
+      <button id="restartBtn" class="ghost">重新开始</button>
+      <button id="quitBtn" class="ghost">返回标题</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= 死亡 ================= -->
+<div id="death" class="screen hidden">
+  <div class="end-inner">
+    <div class="end-tag">记录终止 / SIGNAL LOST</div>
+    <h2>你的脚步声<br>停在了这里</h2>
+    <p class="lore" id="deathCause"></p>
+    <div class="stats" id="deathStats"></div>
+    <div class="pause-actions">
+      <button id="retryBtn" class="primary">再 次 切 出</button>
+      <button id="deathMenuBtn" class="ghost">返回标题</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= 结局 ================= -->
+<div id="ending" class="screen hidden">
+  <div class="end-inner">
+    <div class="end-tag">层级 0 / 已脱离</div>
+    <h2>电梯门合上了</h2>
+    <p class="lore" id="endingText">
+      金属门在后面合拢，把那股潮湿的黄色彻底隔开。<br>
+      你听见轿厢外的走廊里还有东西在奔跑，越来越远。<br>
+      楼层指示灯亮起一个你从未见过的数字。<br>
+      <em>但头顶的荧光灯，还在嗡鸣。</em>
+    </p>
+    <div class="stats" id="endingStats"></div>
+    <div class="pause-actions">
+      <button id="againBtn" class="primary">再 走 一 次</button>
+      <button id="endingMenuBtn" class="ghost">返回标题</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= 载入 ================= -->
+<div id="loading">
+  <div>正在生成层级 0</div>
+  <div class="bar"><i></i></div>
+  <div style="font-size:9px;letter-spacing:.3em;color:#5f5945">PLEASE STAND BY</div>
+</div>
+
+<script src="three.min.js"></script>
+<script src="js/textures.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/level.js"></script>
+<script src="js/entities.js"></script>
+<script src="js/player.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>

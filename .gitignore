@@ -1,0 +1,19 @@
+# 操作系统 / 编辑器
+.DS_Store
+Thumbs.db
+Desktop.ini
+.idea/
+.vscode/
+*.swp
+
+# 依赖 / 构建产物
+node_modules/
+dist/
+
+# 日志与临时文件
+*.log
+*.tmp
+
+# 本地测试脚本与截图（以 _ 开头）
+_*.js
+_*.png
